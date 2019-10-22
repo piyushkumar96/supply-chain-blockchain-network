@@ -1,7 +1,3 @@
-# Copyright IBM Corp. All Rights Reserved.
-#
-# SPDX-License-Identifier: Apache-2.0
-#
 
 ---
 ################################################################################
@@ -25,7 +21,7 @@ Organizations:
         ID: OrdererMSP
 
         # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: crypto-config/ordererOrganizations/example.com/msp
+        MSPDir: crypto-config/ordererOrganizations/supplychainntw.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -49,7 +45,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org1MSP
 
-        MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/org1.supplychainntw.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -70,7 +66,7 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: peer0.org1.example.com
+            - Host: peer0.org1.supplychainntw.com
               Port: 7051
 
     - &Org2
@@ -81,7 +77,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org2MSP
 
-        MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/org2.supplychainntw.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -101,7 +97,7 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: peer0.org2.example.com
+            - Host: peer0.org2.supplychainntw.com
               Port: 9051
 
 ################################################################################
@@ -220,7 +216,7 @@ Orderer: &OrdererDefaults
     OrdererType: solo
 
     Addresses:
-        - orderer.example.com:7050
+        - orderer.supplychainntw.com:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -344,7 +340,7 @@ Profiles:
             OrdererType: kafka
             Kafka:
                 Brokers:
-                - kafka.example.com:9092
+                - kafka.supplychainntw.com:9092
 
             Organizations:
             - *OrdererOrg
@@ -369,32 +365,32 @@ Profiles:
             OrdererType: etcdraft
             EtcdRaft:
                 Consenters:
-                - Host: orderer.example.com
+                - Host: orderer.supplychainntw.com
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-                - Host: orderer2.example.com
+                  ClientTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer.supplychainntw.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer.supplychainntw.com/tls/server.crt
+                - Host: orderer2.supplychainntw.com
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
-                - Host: orderer3.example.com
+                  ClientTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer2.supplychainntw.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer2.supplychainntw.com/tls/server.crt
+                - Host: orderer3.supplychainntw.com
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
-                - Host: orderer4.example.com
+                  ClientTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer3.supplychainntw.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer3.supplychainntw.com/tls/server.crt
+                - Host: orderer4.supplychainntw.com
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
-                - Host: orderer5.example.com
+                  ClientTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer4.supplychainntw.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer4.supplychainntw.com/tls/server.crt
+                - Host: orderer5.supplychainntw.com
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer5.supplychainntw.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/supplychainntw.com/orderers/orderer5.supplychainntw.com/tls/server.crt
             Addresses:
-                - orderer.example.com:7050
-                - orderer2.example.com:7050
-                - orderer3.example.com:7050
-                - orderer4.example.com:7050
-                - orderer5.example.com:7050
+                - orderer.supplychainntw.com:7050
+                - orderer2.supplychainntw.com:7050
+                - orderer3.supplychainntw.com:7050
+                - orderer4.supplychainntw.com:7050
+                - orderer5.supplychainntw.com:7050
 
             Organizations:
             - *OrdererOrg

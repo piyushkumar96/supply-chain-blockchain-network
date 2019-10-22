@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-# Copyright IBM Corp All Rights Reserved
-#
-# SPDX-License-Identifier: Apache-2.0
-#
 
 # This script will orchestrate a sample end-to-end execution of the Hyperledger
 # Fabric network.
@@ -42,7 +37,7 @@ function printHelp() {
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
   echo "      - 'upgrade'  - upgrade the network from version 1.3.x to 1.4.0"
-  echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
+  echo "    -c <channel name> - channel name to use (defaults to \"trackchannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
@@ -58,12 +53,12 @@ function printHelp() {
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
   echo
-  echo "	byfn.sh generate -c mychannel"
-  echo "	byfn.sh up -c mychannel -s couchdb"
-  echo "        byfn.sh up -c mychannel -s couchdb -i 1.4.0"
+  echo "	byfn.sh generate -c trackchannel"
+  echo "	byfn.sh up -c trackchannel -s couchdb"
+  echo "        byfn.sh up -c trackchannel -s couchdb -i 1.4.0"
   echo "	byfn.sh up -l node"
-  echo "	byfn.sh down -c mychannel"
-  echo "        byfn.sh upgrade -c mychannel"
+  echo "	byfn.sh down -c trackchannel"
+  echo "        byfn.sh upgrade -c trackchannel"
   echo
   echo "Taking all defaults:"
   echo "	byfn.sh generate"
@@ -92,7 +87,7 @@ function askProceed() {
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 function clearContainers() {
-  CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /dev-peer.*.mycc.*/) {print $1}')
+  CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /dev-peer.*.trkcc.*/) {print $1}')
   if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
     echo "---- No containers available for deletion ----"
   else
@@ -104,7 +99,7 @@ function clearContainers() {
 # specifically the following images are often left behind:
 # TODO list generated image naming patterns
 function removeUnwantedImages() {
-  DOCKER_IMAGE_IDS=$(docker images | awk '($1 ~ /dev-peer.*.mycc.*/) {print $3}')
+  DOCKER_IMAGE_IDS=$(docker images | awk '($1 ~ /dev-peer.*.trkcc.*/) {print $3}')
   if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
     echo "---- No images available for deletion ----"
   else
@@ -213,7 +208,7 @@ function networkDown() {
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
     #rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config ./org3-artifacts/crypto-config/ channel-artifacts/org3.json
-    # remove the docker-compose yaml file that was customized to the example
+    # remove the docker-compose yaml file that was customized to the supplychainntw
     #rm -f docker-compose-e2e.yaml
   fi
 }
@@ -237,11 +232,11 @@ function replacePrivateKey() {
   # The next steps will replace the template's contents with the
   # actual values of the private key file names for the two CAs.
   CURRENT_DIR=$PWD
-  cd crypto-config/peerOrganizations/org1.example.com/ca/
+  cd crypto-config/peerOrganizations/org1.supplychainntw.com/ca/
   PRIV_KEY=$(ls *_sk)
   cd "$CURRENT_DIR"
   sed $OPTS "s/CA1_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-e2e.yaml
-  cd crypto-config/peerOrganizations/org2.example.com/ca/
+  cd crypto-config/peerOrganizations/org2.supplychainntw.com/ca/
   PRIV_KEY=$(ls *_sk)
   cd "$CURRENT_DIR"
   sed $OPTS "s/CA2_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-e2e.yaml
@@ -315,7 +310,7 @@ function generateCerts() {
 # These headers are important, as we will pass them in as arguments when we create
 # our artifacts.  This file also contains two additional specifications that are worth
 # noting.  Firstly, we specify the anchor peers for each Peer Org
-# (``peer0.org1.example.com`` & ``peer0.org2.example.com``).  Secondly, we point to
+# (``peer0.org1.supplychainntw.com`` & ``peer0.org2.supplychainntw.com``).  Secondly, we point to
 # the location of the MSP directory for each member, in turn allowing us to store the
 # root certificates for each Org in the orderer genesis block.  This is a critical
 # concept. Now any network entity communicating with the ordering service can have
@@ -417,8 +412,8 @@ CLI_TIMEOUT=10
 CLI_DELAY=3
 # system channel name defaults to "byfn-sys-channel"
 SYS_CHANNEL="byfn-sys-channel"
-# channel name defaults to "mychannel"
-CHANNEL_NAME="mychannel"
+# channel name defaults to "trackchannel"
+CHANNEL_NAME="trackchannel"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-e2e.yaml
 #

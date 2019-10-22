@@ -1,5 +1,5 @@
 /*
-# piyushkumar96
+# Author:- piyushkumar96 :- supplychain chaincode for tracking the Items
 #
 */
 
@@ -8,6 +8,10 @@ const shim = require('fabric-shim');
 const util = require('util');
 
 let supplyChainTrackingChaincode = class {
+
+  // ===============================================
+  // Init - for Initantiating the Chaincode
+  // ===============================================
   async Init(stub) {
     let ret = stub.getFunctionAndParameters();
     console.info(ret);
@@ -15,12 +19,15 @@ let supplyChainTrackingChaincode = class {
     return shim.success();
   }
 
+  // ===============================================
+  // Init - for Invoking the Chaincode
+  // ===============================================
   async Invoke(stub) {
     console.info('##################### Transaction ID: ' + stub.getTxID() + ' #####################');
     console.info('##################### ' + util.format('Args: %j', stub.getArgs()) + ' #####################');
 
     let ret = stub.getFunctionAndParameters();
-    console.info(ret);
+    console.info('##################### ' + ret + ' #####################');
 
     let method = this[ret.fcn];
     if (!method) {
@@ -37,11 +44,11 @@ let supplyChainTrackingChaincode = class {
   }
 
   // ===============================================
-  // initMarble - create a new marble
+  // addOrder - Adding a new order request
   // ===============================================
   async addOrder(stub, args, thisClass) {
-    if (args.length != 8) {
-      throw new Error('Incorrect number of arguments. Expecting 4');
+    if (args.length != 6) {
+      throw new Error('Incorrect number of arguments. Expecting 6');
     }
 
     // ==== Input sanitation ====
@@ -64,21 +71,13 @@ let supplyChainTrackingChaincode = class {
     if (args[5].length <= 0) {
       throw new Error('6th argument must be a non-empty string');
     }
-    if (args[6].length <= 0) {
-      throw new Error('7th argument must be a non-empty string');
-    }
-    if (args[7].length <= 0) {
-      throw new Error('8th argument must be a non-empty string');
-    }
 
     let orderId = args[0],
-      sellerId = args[1],
-      sellerLoc = args[2],
-      buyerId = args[3],
-      buyerLoc = args[4],
-      timestamp = args[5],
-      temperature = args[6],
-      status = args[7];
+      orderName = args[1],
+      buyerId = args[2],
+      buyerLoc = args[3],
+      sellerId = args[4],
+      sellerLoc = args[5];
 
     // ==== Check if Order already exists ====
     let ordId = await stub.getState(orderId);
@@ -89,9 +88,7 @@ let supplyChainTrackingChaincode = class {
     let orderInfo = {},
       seller = {},
       logistic = {},
-      buyer = {},
-      tr = {},
-      timeRaster = [];
+      buyer = {};
 
     seller.sellerId = sellerId
     seller.location = sellerLoc
@@ -102,18 +99,15 @@ let supplyChainTrackingChaincode = class {
     buyer.buyerId = buyerId
     buyer.location = buyerLoc
 
-    tr.timestamp = timestamp
-    tr.temperature = temperature
-    timeRaster.push(tr)
-
     orderInfo.ordId = orderId
-    orderInfo.status = status,
+    orderInfo.orderName = orderName
+    orderInfo.status = "Order Request by Buyer"
     orderInfo.statusCode = "1"
     orderInfo.tempBreach = "No"
     orderInfo.seller = seller
     orderInfo.logistic = logistic
     orderInfo.buyer = buyer
-    orderInfo.timeRaster = timeRaster
+    orderInfo.timeRaster = []
 
     // === Save Order to state ===
     await stub.putState(orderId, Buffer.from(JSON.stringify(orderInfo)));
@@ -140,7 +134,7 @@ let supplyChainTrackingChaincode = class {
       throw new Error('2nd argument must be a non-empty string');
     }
 
-    let orderAsbytes = await stub.getState(orderid); //get the order from chaincode state
+    let orderAsbytes = await stub.getState(orderid);                  //get the order from chaincode state
     if (!orderAsbytes.toString()) {
       let jsonResp = {};
       jsonResp.Error = 'Order does not exist: ' + orderid;
@@ -149,18 +143,18 @@ let supplyChainTrackingChaincode = class {
 
     let order = {};
     try {
-      order = JSON.parse(orderAsbytes.toString()); //unmarshal
+      order = JSON.parse(orderAsbytes.toString());                     //unmarshal
     } catch (err) {
       let jsonResp = {};
       jsonResp.error = 'Failed to decode JSON of: ' + orderid;
       throw new Error(jsonResp);
     }
     console.info(order);
-    order.status = status; //change the status
-    order.statusCode = (parseInt(order.statusCode) + 1).toString()   // change the status Code
+    order.status = status;                                            //change the status
+    order.statusCode = (parseInt(order.statusCode) + 1).toString()    // change the status Code
 
     let orderJSONasBytes = Buffer.from(JSON.stringify(order));
-    await stub.putState(orderid, orderJSONasBytes); //rewrite the marble
+    await stub.putState(orderid, orderJSONasBytes);                   //rewrite the order
 
     console.info('- end update status (success)');
   }
@@ -170,14 +164,16 @@ let supplyChainTrackingChaincode = class {
   // ===============================================
   async updateLogisticDetails(stub, args, thisClass) {
 
-    if (args.length != 4) {
-      throw new Error('Incorrect number of arguments. Expecting 3 arguments');
+    if (args.length != 6) {
+      throw new Error('Incorrect number of arguments. Expecting 6 arguments');
     }
 
     let orderid = args[0],
         logisticId = args[1],
         location = args[2],
-        status = args[3];
+        status = args[3],
+        timestamp = args[4],
+        temperature = args[5];
 
     if (args[0].length <= 0) {
       throw new Error('1st argument must be a non-empty string');
@@ -189,10 +185,16 @@ let supplyChainTrackingChaincode = class {
       throw new Error('3nd argument must be a non-empty string');
     }
     if (args[3].length <= 0) {
-      throw new Error('4nd argument must be a non-empty string');
+      throw new Error('4th argument must be a non-empty string');
+    }
+    if (args[4].length <= 0) {
+      throw new Error('5th argument must be a non-empty string');
+    }
+    if (args[5].length <= 0) {
+      throw new Error('6th argument must be a non-empty string');
     }
 
-    let orderAsbytes = await stub.getState(orderid); //get the order from chaincode state
+    let orderAsbytes = await stub.getState(orderid);                     //get the order from chaincode state
     if (!orderAsbytes.toString()) {
       let jsonResp = {};
       jsonResp.Error = 'Order does not exist: ' + orderid;
@@ -201,20 +203,29 @@ let supplyChainTrackingChaincode = class {
 
     let order = {};
     try {
-      order = JSON.parse(orderAsbytes.toString()); //unmarshal
+      order = JSON.parse(orderAsbytes.toString());                       //unmarshal
     } catch (err) {
       let jsonResp = {};
       jsonResp.error = 'Failed to decode JSON of: ' + orderid;
       throw new Error(jsonResp);
     }
     console.info(order);
-    order.logistic.logisticId = logisticId   // change the Logistic Id
-    order.logistic.location = location       // change the location
-    order.status = status                    // change the status
-    order.statusCode = (parseInt(order.statusCode) + 1).toString()   // change the status Code
+    
+    let tr = {},
+        timeRaster = [];
+          
+    tr.timestamp = timestamp                                            
+    tr.temperature = temperature
+    timeRaster.push(tr)
+
+    order.logistic.logisticId = logisticId                              // change the Logistic Id
+    order.logistic.location = location                                  // change the location
+    order.status = status                                               // change the status
+    order.statusCode = (parseInt(order.statusCode) + 1).toString()      // change the status Code
+    order.timeRaster = timeRaster                                       // updating the timeRaster
 
     let orderJSONasBytes = Buffer.from(JSON.stringify(order));
-    await stub.putState(orderid, orderJSONasBytes); //rewrite the marble
+    await stub.putState(orderid, orderJSONasBytes);                     //rewrite the order
 
     console.info('- end update logistic details (success)');
   }
@@ -229,8 +240,8 @@ let supplyChainTrackingChaincode = class {
     }
 
     let orderid = args[0],
-      timestamp = args[1],
-      temperature = args[2];
+        timestamp = args[1],
+        temperature = args[2];
 
     if (args[0].length <= 0) {
       throw new Error('1st argument must be a non-empty string');
@@ -242,7 +253,7 @@ let supplyChainTrackingChaincode = class {
       throw new Error('3nd argument must be a non-empty string');
     }
 
-    let orderAsbytes = await stub.getState(orderid); //get the order from chaincode state
+    let orderAsbytes = await stub.getState(orderid);                     //get the order from chaincode state
     if (!orderAsbytes.toString()) {
       let jsonResp = {};
       jsonResp.Error = 'Order does not exist: ' + orderid;
@@ -251,7 +262,7 @@ let supplyChainTrackingChaincode = class {
 
     let order = {};
     try {
-      order = JSON.parse(orderAsbytes.toString()); //unmarshal
+      order = JSON.parse(orderAsbytes.toString());                      //unmarshal
     } catch (err) {
       let jsonResp = {};
       jsonResp.error = 'Failed to decode JSON of: ' + orderid;
@@ -263,7 +274,7 @@ let supplyChainTrackingChaincode = class {
     timeRas.timestamp = timestamp
     timeRas.temperature = temperature
 
-    order.timeRaster.push(timeRas);  // update the time Raster
+    order.timeRaster.push(timeRas);                                      // update the time Raster
 
     let timeRaster = order.timeRaster,
         size = timeRaster.length;
@@ -278,13 +289,13 @@ let supplyChainTrackingChaincode = class {
         let diff = Math.abs(tr1 - tr4) / 1000,
             diffInMintues = Math.floor(diff / 60);
         
-        if ((diffInMintues >= 30) && ((temp1 + temp2 + temp3) / 3) > 20) {
+        if ((diffInMintues >= 30) && ((temp1 + temp2 + temp3) / 3) > 20) {    // checking the Temperature Breach
             order.tempBreach = "Yes";
         }
     }
 
     let orderJSONasBytes = Buffer.from(JSON.stringify(order));
-    await stub.putState(orderid, orderJSONasBytes); //rewrite the marble
+    await stub.putState(orderid, orderJSONasBytes);                           //rewrite the order
 
     console.info('- end update Time Raster (success)');
   }
@@ -301,7 +312,7 @@ let supplyChainTrackingChaincode = class {
     if (!orderId) {
       throw new Error(' order Id must not be empty');
     }
-    let orderAsbytes = await stub.getState(orderId); //get the order from chaincode state
+    let orderAsbytes = await stub.getState(orderId);                         //get the order from chaincode state
     if (!orderAsbytes.toString()) {
       let jsonResp = {};
       jsonResp.Error = 'Order does not exist: ' + orderId;
